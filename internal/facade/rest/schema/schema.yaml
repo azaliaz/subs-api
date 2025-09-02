@@ -1,0 +1,263 @@
+openapi: 3.0.0
+info:
+  title: API Subscriptions
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /api/create:
+    post:
+      summary: Создать новую подписку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        '200':
+          description: Подписка успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateResponse'
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/info/{id}:
+    get:
+      summary: Получить информацию о подписке
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация о подписке
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetInfoResponse'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Подписка не найдена
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/list:
+    get:
+      summary: Получить список подписок
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: service_name
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "01-2025"
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "12-2025"
+      responses:
+        '200':
+          description: Список подписок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetInfoResponse'
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/update/{id}:
+    put:
+      summary: Обновить подписку
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRequest'
+      responses:
+        '200':
+          description: Подписка обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateResponse'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Подписка не найдена
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/delete/{id}:
+    delete:
+      summary: Удалить подписку
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Подписка удалена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Подписка не найдена
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/total:
+    get:
+      summary: Получить общую стоимость подписок за период
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: service_name
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "01-2025"
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "12-2025"
+      responses:
+        '200':
+          description: Общая сумма
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalResponse'
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка сервера
+
+components:
+  schemas:
+    CreateRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        service_name:
+          type: string
+        price:
+          type: integer
+        start_date:
+          type: string
+          example: "09-2025"
+        end_date:
+          type: string
+          example: "09-2026"
+      required: [user_id, service_name, price, start_date, end_date]
+
+    CreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+
+    GetInfoResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        service_name:
+          type: string
+        price:
+          type: integer
+        start_date:
+          type: string
+          example: "09-2025"
+        end_date:
+          type: string
+          example: "09-2026"
+
+    UpdateRequest:
+      type: object
+      properties:
+        service_name:
+          type: string
+        price:
+          type: integer
+        start_date:
+          type: string
+          example: "09-2025"
+        end_date:
+          type: string
+          example: "09-2026"
+
+    UpdateResponse:
+      type: object
+      properties:
+        updated:
+          type: boolean
+
+    TotalResponse:
+      type: object
+      properties:
+        total:
+          type: integer

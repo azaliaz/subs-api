@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  postgres-01:
+    container_name: postgres-01
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_DB: subs-api
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 1
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d subs-api"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
+  migration:
+    container_name: migration
+    restart: on-failure
+    depends_on:
+      postgres-01:
+        condition: service_healthy
+    build:
+      context: ./../../
+      dockerfile: ./deploy/docker/migration/Dockerfile
+      args:
+        VERSION: ${VERSION}
+    env_file:
+      - .env
+      - ./migration/.env
+
+  subs-api:
+    container_name: subs-api
+    restart: always
+    depends_on:
+      postgres-01:
+        condition: service_healthy
+    build:
+      context: ./../../
+      dockerfile: ./deploy/docker/subs-api/Dockerfile
+      args:
+        VERSION: ${VERSION}
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+      - ./subs-api/.env
